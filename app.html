@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur de Dose Gamma</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 40px;
+      font-size: 1.1em;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .form-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 10px;
+      border: 2px solid #e9ecef;
+    }
+
+    .form-section h2 {
+      color: #495057;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #495057;
+      font-weight: 600;
+      font-size: 0.95em;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    input[type="radio"],
+    input[type="checkbox"] {
+      margin-right: 8px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .conditional {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .conditional.active {
+      display: block;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-weight: 600;
+      display: block;
+      margin: 30px auto;
+      min-width: 200px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .results {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      display: none;
+      margin-top: 30px;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .results h2 {
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border: none;
+    }
+
+    .result-item {
+      background: rgba(255,255,255,0.2);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .result-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .result-value {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+
+    .unit {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      color: #0d47a1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>☢️ Calculateur de Dose Gamma</h1>
+    <p class="subtitle">Calcul précis de dose avec atténuation et facteur de build-up</p>
+
+    <div class="info-box">
+      <strong>Note :</strong> Ce calculateur utilise les coefficients d'atténuation de la base XCOM (NIST) et prend en compte le facteur de build-up pour une estimation précise de la dose.
+    </div>
+
+    <form id="doseForm">
+      <!-- Source Type -->
+      <div class="form-section">
+        <h2>1. Type de Source</h2>
+        <div class="form-group">
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="sourceType" value="energy" checked>
+              Énergie directe
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="sourceType" value="radionuclide">
+              Radionucléide
+            </label>
+          </div>
+        </div>
+
+        <div id="energyInputs" class="conditional active">
+          <div class="form-group">
+            <label>Type d'énergie</label>
+            <select id="energyType">
+              <option value="mono">Mono-énergétique</option>
+              <option value="multi">Liste d'énergies</option>
+            </select>
+          </div>
+          <div id="monoEnergy" class="conditional active">
+            <div class="form-group">
+              <label>Énergie (MeV)</label>
+              <input type="number" id="singleEnergy" step="0.001" value="1.0" min="0.01" max="10">
+            </div>
+          </div>
+          <div id="multiEnergy" class="conditional">
+            <div class="form-group">
+              <label>Liste d'énergies (MeV) et intensités relatives (une par ligne: énergie,intensité)</label>
+              <textarea id="energyList" placeholder="0.662,1.0&#10;1.173,0.5&#10;1.332,0.5">0.662,1.0</textarea>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nombre de photons par seconde (photons/s)</label>
+            <input type="number" id="photonRate" value="1e10" step="1e9" min="0">
+          </div>
+        </div>
+
+        <div id="radionuclideInputs" class="conditional">
+          <div class="form-group">
+            <label>Radionucléide</label>
+            <select id="radionuclide">
+              <option value="Cs-137">Césium-137</option>
+              <option value="Co-60">Cobalt-60</option>
+              <option value="Am-241">Américium-241</option>
+              <option value="Ag-110m">Argent-110m</option>
+              <option value="Ir-192">Iridium-192</option>
+              <option value="I-131">Iode-131</option>
+              <option value="Ba-133">Baryum-133</option>
+              <option value="Na-22">Sodium-22</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Activité (Bq)</label>
+            <input type="number" id="activity" value="1e9" step="1e8" min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Distance -->
+      <div class="form-section">
+        <h2>2. Distance</h2>
+        <div class="form-group">
+          <label>Distance source-détecteur (m)</label>
+          <input type="number" id="distance" value="1.0" step="0.1" min="0.01">
+        </div>
+      </div>
+
+      <!-- Shielding -->
+      <div class="form-section">
+        <h2>3. Écran (optionnel)</h2>
+        <div class="form-group">
+          <label class="radio-label">
+            <input type="checkbox" id="useShield">
+            Utiliser un écran
+          </label>
+        </div>
+
+        <div id="shieldInputs" class="conditional">
+          <div class="form-group">
+            <label>Matériau</label>
+            <select id="shieldMaterial">
+              <option value="lead">Plomb</option>
+              <option value="steel">Acier</option>
+              <option value="aluminum">Aluminium</option>
+              <option value="uranium">Uranium</option>
+              <option value="air">Air</option>
+              <option value="concrete">Béton</option>
+              <option value="water">Eau</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Épaisseur (cm)</label>
+            <input type="number" id="shieldThickness" value="5.0" step="0.1" min="0">
+          </div>
+        </div>
+      </div>
+
+      <button type="submit">🧮 Calculer la Dose</button>
+    </form>
+
+    <div id="results" class="results">
+      <h2>📊 Résultats</h2>
+      <div id="resultsContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // DONNÉES DES RADIONUCLÉIDES
+    // ============================================================
+    const RADIONUCLIDES = {
+      'Cs-137': {
+        id: 'Cs-137',
+        name: 'Césium-137',
+        halfLife: 9.4867e8,
+        gammaLines: [
+          { energy: 0.6616, intensity: 0.851 }
+        ]
+      },
+      'Co-60': {
+        id: 'Co-60',
+        name: 'Cobalt-60',
+        halfLife: 1.6632e8,
+        gammaLines: [
+          { energy: 1.1732, intensity: 0.9985 },
+          { energy: 1.3325, intensity: 0.9998 }
+        ]
+      },
+      'Am-241': {
+        id: 'Am-241',
+        name: 'Américium-241',
+        halfLife: 1.3631e10,
+        gammaLines: [
+          { energy: 0.0595, intensity: 0.359 },
+          { energy: 0.0261, intensity: 0.024 }
+        ]
+      },
+      'Ag-110m': {
+        id: 'Ag-110m',
+        name: 'Argent-110m',
+        halfLife: 2.1546e7,
+        gammaLines: [
+          { energy: 0.6578, intensity: 0.9447 },
+          { energy: 0.8847, intensity: 0.7290 },
+          { energy: 0.9373, intensity: 0.3426 },
+          { energy: 1.3840, intensity: 0.2431 },
+          { energy: 1.5048, intensity: 0.1301 }
+        ]
+      },
+      'Ir-192': {
+        id: 'Ir-192',
+        name: 'Iridium-192',
+        halfLife: 6.3846e6,
+        gammaLines: [
+          { energy: 0.3165, intensity: 0.8268 },
+          { energy: 0.4685, intensity: 0.4781 },
+          { energy: 0.6044, intensity: 0.0820 },
+          { energy: 0.2961, intensity: 0.2870 },
+          { energy: 0.3089, intensity: 0.2970 }
+        ]
+      },
+      'I-131': {
+        id: 'I-131',
+        name: 'Iode-131',
+        halfLife: 6.9379e5,
+        gammaLines: [
+          { energy: 0.3645, intensity: 0.817 },
+          { energy: 0.6369, intensity: 0.072 },
+          { energy: 0.2843, intensity: 0.061 }
+        ]
+      },
+      'Ba-133': {
+        id: 'Ba-133',
+        name: 'Baryum-133',
+        halfLife: 3.3185e8,
+        gammaLines: [
+          { energy: 0.0810, intensity: 0.3290 },
+          { energy: 0.3560, intensity: 0.6205 },
+          { energy: 0.3029, intensity: 0.1831 },
+          { energy: 0.2764, intensity: 0.0716 }
+        ]
+      },
+      'Na-22': {
+        id: 'Na-22',
+        name: 'Sodium-22',
+        halfLife: 8.2108e7,
+        gammaLines: [
+          { energy: 1.2746, intensity: 0.9994 },
+          { energy: 0.5110, intensity: 1.7976 }
+        ]
+      }
+    };
+
+    // ============================================================
+    // DONNÉES XCOM (coefficients d'atténuation)
+    // ============================================================
+    const MATERIALS = {
+      lead: {
+        name: 'Plomb',
+        density: 11.35,
+        attenuationData: [
+          { energy: 0.010, mu: 61.40, muEn: 52.30 },
+          { energy: 0.015, mu: 19.15, muEn: 15.84 },
+          { energy: 0.020, mu: 9.144, muEn: 7.212 },
+          { energy: 0.030, mu: 3.043, muEn: 2.218 },
+          { energy: 0.040, mu: 1.457, muEn: 0.9771 },
+          { energy: 0.050, mu: 0.8821, muEn: 0.5589 },
+          { energy: 0.060, mu: 0.6294, muEn: 0.3754 },
+          { energy: 0.080, mu: 0.3907, muEn: 0.2189 },
+          { energy: 0.100, mu: 0.2935, muEn: 0.1543 },
+          { energy: 0.150, mu: 0.1832, muEn: 0.08773 },
+          { energy: 0.200, mu: 0.1410, muEn: 0.06155 },
+          { energy: 0.300, mu: 0.1093, muEn: 0.04058 },
+          { energy: 0.400, mu: 0.09468, muEn: 0.03189 },
+          { energy: 0.500, mu: 0.08493, muEn: 0.02737 },
+          { energy: 0.600, mu: 0.07781, muEn: 0.02444 },
+          { energy: 0.662, mu: 0.07436, muEn: 0.02317 },
+          { energy: 0.800, mu: 0.06821, muEn: 0.02095 },
+          { energy: 1.000, mu: 0.06278, muEn: 0.01881 },
+          { energy: 1.173, mu: 0.05958, muEn: 0.01753 },
+          { energy: 1.332, mu: 0.05754, muEn: 0.01673 },
+          { energy: 1.500, mu: 0.05566, muEn: 0.01598 },
+          { energy: 2.000, mu: 0.05175, muEn: 0.01443 },
+          { energy: 3.000, mu: 0.04680, muEn: 0.01242 },
+          { energy: 4.000, mu: 0.04403, muEn: 0.01134 },
+          { energy: 5.000, mu: 0.04222, muEn: 0.01065 },
+          { energy: 6.000, mu: 0.04098, muEn: 0.01018 },
+          { energy: 8.000, mu: 0.03941, muEn: 0.009556 },
+          { energy: 10.00, mu: 0.03854, muEn: 0.009228 }
+        ]
+      },
+      steel: {
+        name: 'Acier',
+        density: 7.87,
+        attenuationData: [
+          { energy: 0.010, mu: 27.51, muEn: 26.79 },
+          { energy: 0.015, mu: 9.825, muEn: 9.401 },
+          { energy: 0.020, mu: 4.664, muEn: 4.396 },
+          { energy: 0.030, mu: 1.587, muEn: 1.454 },
+          { energy: 0.040, mu: 0.7353, muEn: 0.6528 },
+          { energy: 0.050, mu: 0.4200, muEn: 0.3617 },
+          { energy: 0.060, mu: 0.2808, muEn: 0.2359 },
+          { energy: 0.080, mu: 0.1626, muEn: 0.1332 },
+          { energy: 0.100, mu: 0.1179, muEn: 0.09486 },
+          { energy: 0.150, mu: 0.07394, muEn: 0.05778 },
+          { energy: 0.200, mu: 0.05884, muEn: 0.04453 },
+          { energy: 0.300, mu: 0.04581, muEn: 0.03311 },
+          { energy: 0.400, mu: 0.03970, muEn: 0.02787 },
+          { energy: 0.500, mu: 0.03596, muEn: 0.02478 },
+          { energy: 0.600, mu: 0.03329, muEn: 0.02267 },
+          { energy: 0.662, mu: 0.03207, muEn: 0.02167 },
+          { energy: 0.800, mu: 0.02994, muEn: 0.02020 },
+          { energy: 1.000, mu: 0.02788, muEn: 0.01870 },
+          { energy: 1.173, mu: 0.02657, muEn: 0.01780 },
+          { energy: 1.332, mu: 0.02564, muEn: 0.01717 },
+          { energy: 1.500, mu: 0.02478, muEn: 0.01659 },
+          { energy: 2.000, mu: 0.02306, muEn: 0.01535 },
+          { energy: 3.000, mu: 0.02082, muEn: 0.01360 },
+          { energy: 4.000, mu: 0.01952, muEn: 0.01258 },
+          { energy: 5.000, mu: 0.01870, muEn: 0.01192 },
+          { energy: 6.000, mu: 0.01815, muEn: 0.01146 },
+          { energy: 8.000, mu: 0.01746, muEn: 0.01085 },
+          { energy: 10.00, mu: 0.01707, muEn: 0.01048 }
+        ]
+      },
+      aluminum: {
+        name: 'Aluminium',
+        density: 2.70,
+        attenuationData: [
+          { energy: 0.010, mu: 10.60, muEn: 10.37 },
+          { energy: 0.015, mu: 3.441, muEn: 3.314 },
+          { energy: 0.020, mu: 1.485, muEn: 1.408 },
+          { energy: 0.030, mu: 0.4608, muEn: 0.4254 },
+          { energy: 0.040, mu: 0.2098, muEn: 0.1876 },
+          { energy: 0.050, mu: 0.1252, muEn: 0.1091 },
+          { energy: 0.060, mu: 0.08679, muEn: 0.07390 },
+          { energy: 0.080, mu: 0.05415, muEn: 0.04493 },
+          { energy: 0.100, mu: 0.03960, muEn: 0.03226 },
+          { energy: 0.150, mu: 0.02541, muEn: 0.02029 },
+          { energy: 0.200, mu: 0.02066, muEn: 0.01620 },
+          { energy: 0.300, mu: 0.01633, muEn: 0.01254 },
+          { energy: 0.400, mu: 0.01422, muEn: 0.01081 },
+          { energy: 0.500, mu: 0.01291, muEn: 0.009754 },
+          { energy: 0.600, mu: 0.01201, muEn: 0.009028 },
+          { energy: 0.662, mu: 0.01160, muEn: 0.008683 },
+          { energy: 0.800, mu: 0.01087, muEn: 0.008119 },
+          { energy: 1.000, mu: 0.01013, muEn: 0.007550 },
+          { energy: 1.173, mu: 0.009646, muEn: 0.007181 },
+          { energy: 1.332, mu: 0.009301, muEn: 0.006920 },
+          { energy: 1.500, mu: 0.008989, muEn: 0.006681 },
+          { energy: 2.000, mu: 0.008349, muEn: 0.006196 },
+          { energy: 3.000, mu: 0.007495, muEn: 0.005548 },
+          { energy: 4.000, mu: 0.006993, muEn: 0.005166 },
+          { energy: 5.000, mu: 0.006671, muEn: 0.004920 },
+          { energy: 6.000, mu: 0.006461, muEn: 0.004750 },
+          { energy: 8.000, mu: 0.006211, muEn: 0.004529 },
+          { energy: 10.00, mu: 0.006073, muEn: 0.004397 }
+        ]
+      },
+      uranium: {
+        name: 'Uranium',
+        density: 19.05,
+        attenuationData: [
+          { energy: 0.010, mu: 87.33, muEn: 78.62 },
+          { energy: 0.015, mu: 28.58, muEn: 24.46 },
+          { energy: 0.020, mu: 13.63, muEn: 11.23 },
+          { energy: 0.030, mu: 4.543, muEn: 3.561 },
+          { energy: 0.040, mu: 2.118, muEn: 1.566 },
+          { energy: 0.050, mu: 1.239, muEn: 0.8729 },
+          { energy: 0.060, mu: 0.8541, muEn: 0.5724 },
+          { energy: 0.080, mu: 0.5174, muEn: 0.3216 },
+          { energy: 0.100, mu: 0.3773, muEn: 0.2221 },
+          { energy: 0.150, mu: 0.2295, muEn: 0.1245 },
+          { energy: 0.200, mu: 0.1741, muEn: 0.08645 },
+          { energy: 0.300, mu: 0.1320, muEn: 0.05610 },
+          { energy: 0.400, mu: 0.1128, muEn: 0.04357 },
+          { energy: 0.500, mu: 0.1009, muEn: 0.03671 },
+          { energy: 0.600, mu: 0.09254, muEn: 0.03252 },
+          { energy: 0.662, mu: 0.08857, muEn: 0.03076 },
+          { energy: 0.800, mu: 0.08132, muEn: 0.02782 },
+          { energy: 1.000, mu: 0.07515, muEn: 0.02499 },
+          { energy: 1.173, mu: 0.07136, muEn: 0.02327 },
+          { energy: 1.332, mu: 0.06881, muEn: 0.02213 },
+          { energy: 1.500, mu: 0.06657, muEn: 0.02117 },
+          { energy: 2.000, mu: 0.06208, muEn: 0.01910 },
+          { energy: 3.000, mu: 0.05648, muEn: 0.01645 },
+          { energy: 4.000, mu: 0.05337, muEn: 0.01502 },
+          { energy: 5.000, mu: 0.05142, muEn: 0.01416 },
+          { energy: 6.000, mu: 0.05006, muEn: 0.01358 },
+          { energy: 8.000, mu: 0.04825, muEn: 0.01278 },
+          { energy: 10.00, mu: 0.04715, muEn: 0.01231 }
+        ]
+      },
+      air: {
+        name: 'Air',
+        density: 0.001205,
+        attenuationData: [
+          { energy: 0.010, mu: 5.120, muEn: 5.013 },
+          { energy: 0.015, mu: 1.614, muEn: 1.560 },
+          { energy: 0.020, mu: 0.7779, muEn: 0.7374 },
+          { energy: 0.030, mu: 0.2834, muEn: 0.2617 },
+          { energy: 0.040, mu: 0.1485, muEn: 0.1337 },
+          { energy: 0.050, mu: 0.09393, muEn: 0.08263 },
+          { energy: 0.060, mu: 0.06773, muEn: 0.05859 },
+          { energy: 0.080, mu: 0.04381, muEn: 0.03722 },
+          { energy: 0.100, mu: 0.03279, muEn: 0.02743 },
+          { energy: 0.150, mu: 0.02128, muEn: 0.01739 },
+          { energy: 0.200, mu: 0.01732, muEn: 0.01393 },
+          { energy: 0.300, mu: 0.01372, muEn: 0.01076 },
+          { energy: 0.400, mu: 0.01195, muEn: 0.009246 },
+          { energy: 0.500, mu: 0.01084, muEn: 0.008339 },
+          { energy: 0.600, mu: 0.01007, muEn: 0.007714 },
+          { energy: 0.662, mu: 0.009717, muEn: 0.007425 },
+          { energy: 0.800, mu: 0.009090, muEn: 0.006932 },
+          { energy: 1.000, mu: 0.008471, muEn: 0.006442 },
+          { energy: 1.173, mu: 0.008065, muEn: 0.006128 },
+          { energy: 1.332, mu: 0.007778, muEn: 0.005906 },
+          { energy: 1.500, mu: 0.007516, muEn: 0.005703 },
+          { energy: 2.000, mu: 0.006979, muEn: 0.005288 },
+          { energy: 3.000, mu: 0.006257, muEn: 0.004730 },
+          { energy: 4.000, mu: 0.005839, muEn: 0.004407 },
+          { energy: 5.000, mu: 0.005571, muEn: 0.004200 },
+          { energy: 6.000, mu: 0.005393, muEn: 0.004056 },
+          { energy: 8.000, mu: 0.005184, muEn: 0.003867 },
+          { energy: 10.00, mu: 0.005069, muEn: 0.003754 }
+        ]
+      },
+      concrete: {
+        name: 'Béton',
+        density: 2.30,
+        attenuationData: [
+          { energy: 0.010, mu: 6.042, muEn: 5.916 },
+          { energy: 0.015, mu: 1.929, muEn: 1.867 },
+          { energy: 0.020, mu: 0.8597, muEn: 0.8175 },
+          { energy: 0.030, mu: 0.3052, muEn: 0.2825 },
+          { energy: 0.040, mu: 0.1488, muEn: 0.1337 },
+          { energy: 0.050, mu: 0.09238, muEn: 0.08116 },
+          { energy: 0.060, mu: 0.06554, muEn: 0.05634 },
+          { energy: 0.080, mu: 0.04178, muEn: 0.03520 },
+          { energy: 0.100, mu: 0.03069, muEn: 0.02543 },
+          { energy: 0.150, mu: 0.01967, muEn: 0.01595 },
+          { energy: 0.200, mu: 0.01596, muEn: 0.01271 },
+          { energy: 0.300, mu: 0.01260, muEn: 0.009823 },
+          { energy: 0.400, mu: 0.01096, muEn: 0.008442 },
+          { energy: 0.500, mu: 0.009942, muEn: 0.007610 },
+          { energy: 0.600, mu: 0.009239, muEn: 0.007052 },
+          { energy: 0.662, mu: 0.008917, muEn: 0.006790 },
+          { energy: 0.800, mu: 0.008337, muEn: 0.006343 },
+          { energy: 1.000, mu: 0.007767, muEn: 0.005897 },
+          { energy: 1.173, mu: 0.007395, muEn: 0.005613 },
+          { energy: 1.332, mu: 0.007132, muEn: 0.005412 },
+          { energy: 1.500, mu: 0.006890, muEn: 0.005225 },
+          { energy: 2.000, mu: 0.006401, muEn: 0.004849 },
+          { energy: 3.000, mu: 0.005741, muEn: 0.004337 },
+          { energy: 4.000, mu: 0.005357, muEn: 0.004039 },
+          { energy: 5.000, mu: 0.005113, muEn: 0.003851 },
+          { energy: 6.000, mu: 0.004951, muEn: 0.003722 },
+          { energy: 8.000, mu: 0.004760, muEn: 0.003545 },
+          { energy: 10.00, mu: 0.004655, muEn: 0.003440 }
+        ]
+      },
+      water: {
+        name: 'Eau',
+        density: 1.00,
+        attenuationData: [
+          { energy: 0.010, mu: 5.329, muEn: 5.211 },
+          { energy: 0.015, mu: 1.673, muEn: 1.614 },
+          { energy: 0.020, mu: 0.8096, muEn: 0.7672 },
+          { energy: 0.030, mu: 0.2956, muEn: 0.2729 },
+          { energy: 0.040, mu: 0.1525, muEn: 0.1372 },
+          { energy: 0.050, mu: 0.09552, muEn: 0.08398 },
+          { energy: 0.060, mu: 0.06865, muEn: 0.05937 },
+          { energy: 0.080, mu: 0.04453, muEn: 0.03779 },
+          { energy: 0.100, mu: 0.03321, muEn: 0.02778 },
+          { energy: 0.150, mu: 0.02148, muEn: 0.01755 },
+          { energy: 0.200, mu: 0.01752, muEn: 0.01409 },
+          { energy: 0.300, mu: 0.01386, muEn: 0.01088 },
+          { energy: 0.400, mu: 0.01206, muEn: 0.009344 },
+          { energy: 0.500, mu: 0.01093, muEn: 0.008418 },
+          { energy: 0.600, mu: 0.01015, muEn: 0.007791 },
+          { energy: 0.662, mu: 0.009788, muEn: 0.007501 },
+          { energy: 0.800, mu: 0.009150, muEn: 0.007002 },
+          { energy: 1.000, mu: 0.008522, muEn: 0.006507 },
+          { energy: 1.173, mu: 0.008112, muEn: 0.006192 },
+          { energy: 1.332, mu: 0.007823, muEn: 0.005969 },
+          { energy: 1.500, mu: 0.007558, muEn: 0.005764 },
+          { energy: 2.000, mu: 0.007013, muEn: 0.005345 },
+          { energy: 3.000, mu: 0.006281, muEn: 0.004783 },
+          { energy: 4.000, mu: 0.005858, muEn: 0.004456 },
+          { energy: 5.000, mu: 0.005588, muEn: 0.004247 },
+          { energy: 6.000, mu: 0.005408, muEn: 0.004101 },
+          { energy: 8.000, mu: 0.005196, muEn: 0.003909 },
+          { energy: 10.00, mu: 0.005080, muEn: 0.003795 }
+        ]
+      }
+    };
+
+    // ============================================================
+    // DONNÉES BUILD-UP
+    // ============================================================
+    const BUILDUP_DATA = {
+      lead: [
+        { energy: 0.015, alpha: 0.850, beta: 0.075 },
+        { energy: 0.020, alpha: 1.200, beta: 0.085 },
+        { energy: 0.030, alpha: 1.800, beta: 0.095 },
+        { energy: 0.040, alpha: 2.200, beta: 0.100 },
+        { energy: 0.050, alpha: 2.400, beta: 0.105 },
+        { energy: 0.060, alpha: 2.500, beta: 0.110 },
+        { energy: 0.080, alpha: 2.350, beta: 0.115 },
+        { energy: 0.100, alpha: 2.100, beta: 0.118 },
+        { energy: 0.150, alpha: 1.600, beta: 0.120 },
+        { energy: 0.200, alpha: 1.300, beta: 0.118 },
+        { energy: 0.300, alpha: 0.900, beta: 0.112 },
+        { energy: 0.400, alpha: 0.700, beta: 0.105 },
+        { energy: 0.500, alpha: 0.600, beta: 0.098 },
+        { energy: 0.600, alpha: 0.530, beta: 0.092 },
+        { energy: 0.662, alpha: 0.500, beta: 0.089 },
+        { energy: 0.800, alpha: 0.450, beta: 0.085 },
+        { energy: 1.000, alpha: 0.400, beta: 0.078 },
+        { energy: 1.173, alpha: 0.370, beta: 0.074 },
+        { energy: 1.332, alpha: 0.350, beta: 0.071 },
+        { energy: 1.500, alpha: 0.330, beta: 0.068 },
+        { energy: 2.000, alpha: 0.280, beta: 0.060 },
+        { energy: 3.000, alpha: 0.220, beta: 0.048 },
+        { energy: 4.000, alpha: 0.180, beta: 0.040 },
+        { energy: 5.000, alpha: 0.150, beta: 0.035 },
+        { energy: 6.000, alpha: 0.130, beta: 0.030 },
+        { energy: 8.000, alpha: 0.100, beta: 0.022 },
+        { energy: 10.00, alpha: 0.080, beta: 0.018 }
+      ],
+      steel: [
+        { energy: 0.015, alpha: 1.100, beta: 0.090 },
+        { energy: 0.020, alpha: 1.650, beta: 0.105 },
+        { energy: 0.030, alpha: 2.500, beta: 0.120 },
+        { energy: 0.040, alpha: 3.100, beta: 0.130 },
+        { energy: 0.050, alpha: 3.400, beta: 0.135 },
+        { energy: 0.060, alpha: 3.500, beta: 0.138 },
+        { energy: 0.080, alpha: 3.300, beta: 0.140 },
+        { energy: 0.100, alpha: 2.950, beta: 0.140 },
+        { energy: 0.150, alpha: 2.250, beta: 0.138 },
+        { energy: 0.200, alpha: 1.850, beta: 0.133 },
+        { energy: 0.300, alpha: 1.350, beta: 0.123 },
+        { energy: 0.400, alpha: 1.050, beta: 0.113 },
+        { energy: 0.500, alpha: 0.880, beta: 0.105 },
+        { energy: 0.600, alpha: 0.770, beta: 0.098 },
+        { energy: 0.662, alpha: 0.720, beta: 0.095 },
+        { energy: 0.800, alpha: 0.650, beta: 0.089 },
+        { energy: 1.000, alpha: 0.570, beta: 0.082 },
+        { energy: 1.173, alpha: 0.525, beta: 0.078 },
+        { energy: 1.332, alpha: 0.495, beta: 0.075 },
+        { energy: 1.500, alpha: 0.465, beta: 0.071 },
+        { energy: 2.000, alpha: 0.400, beta: 0.062 },
+        { energy: 3.000, alpha: 0.310, beta: 0.049 },
+        { energy: 4.000, alpha: 0.255, beta: 0.041 },
+        { energy: 5.000, alpha: 0.218, beta: 0.036 },
+        { energy: 6.000, alpha: 0.190, beta: 0.031 },
+        { energy: 8.000, alpha: 0.150, beta: 0.024 },
+        { energy: 10.00, alpha: 0.125, beta: 0.019 }
+      ],
+      aluminum: [
+        { energy: 0.015, alpha: 1.250, beta: 0.095 },
+        { energy: 0.020, alpha: 1.900, beta: 0.110 },
+        { energy: 0.030, alpha: 2.850, beta: 0.128 },
+        { energy: 0.040, alpha: 3.550, beta: 0.138 },
+        { energy: 0.050, alpha: 3.900, beta: 0.143 },
+        { energy: 0.060, alpha: 4.050, beta: 0.146 },
+        { energy: 0.080, alpha: 3.850, beta: 0.148 },
+        { energy: 0.100, alpha: 3.450, beta: 0.147 },
+        { energy: 0.150, alpha: 2.650, beta: 0.143 },
+        { energy: 0.200, alpha: 2.180, beta: 0.137 },
+        { energy: 0.300, alpha: 1.600, beta: 0.127 },
+        { energy: 0.400, alpha: 1.250, beta: 0.117 },
+        { energy: 0.500, alpha: 1.050, beta: 0.108 },
+        { energy: 0.600, alpha: 0.920, beta: 0.101 },
+        { energy: 0.662, alpha: 0.860, beta: 0.098 },
+        { energy: 0.800, alpha: 0.780, beta: 0.092 },
+        { energy: 1.000, alpha: 0.685, beta: 0.085 },
+        { energy: 1.173, alpha: 0.630, beta: 0.080 },
+        { energy: 1.332, alpha: 0.595, beta: 0.077 },
+        { energy: 1.500, alpha: 0.560, beta: 0.074 },
+        { energy: 2.000, alpha: 0.480, beta: 0.064 },
+        { energy: 3.000, alpha: 0.375, beta: 0.051 },
+        { energy: 4.000, alpha: 0.310, beta: 0.042 },
+        { energy: 5.000, alpha: 0.265, beta: 0.037 },
+        { energy: 6.000, alpha: 0.230, beta: 0.032 },
+        { energy: 8.000, alpha: 0.182, beta: 0.025 },
+        { energy: 10.00, alpha: 0.152, beta: 0.020 }
+      ],
+      uranium: [
+        { energy: 0.015, alpha: 0.750, beta: 0.070 },
+        { energy: 0.020, alpha: 1.050, beta: 0.080 },
+        { energy: 0.030, alpha: 1.600, beta: 0.090 },
+        { energy: 0.040, alpha: 1.950, beta: 0.095 },
+        { energy: 0.050, alpha: 2.100, beta: 0.100 },
+        { energy: 0.060, alpha: 2.150, beta: 0.103 },
+        { energy: 0.080, alpha: 2.000, beta: 0.108 },
+        { energy: 0.100, alpha: 1.800, beta: 0.110 },
+        { energy: 0.150, alpha: 1.350, beta: 0.112 },
+        { energy: 0.200, alpha: 1.100, beta: 0.110 },
+        { energy: 0.300, alpha: 0.750, beta: 0.105 },
+        { energy: 0.400, alpha: 0.580, beta: 0.098 },
+        { energy: 0.500, alpha: 0.490, beta: 0.092 },
+        { energy: 0.600, alpha: 0.430, beta: 0.086 },
+        { energy: 0.662, alpha: 0.400, beta: 0.083 },
+        { energy: 0.800, alpha: 0.360, beta: 0.079 },
+        { energy: 1.000, alpha: 0.320, beta: 0.073 },
+        { energy: 1.173, alpha: 0.295, beta: 0.069 },
+        { energy: 1.332, alpha: 0.280, beta: 0.066 },
+        { energy: 1.500, alpha: 0.265, beta: 0.063 },
+        { energy: 2.000, alpha: 0.225, beta: 0.056 },
+        { energy: 3.000, alpha: 0.175, beta: 0.045 },
+        { energy: 4.000, alpha: 0.145, beta: 0.037 },
+        { energy: 5.000, alpha: 0.122, beta: 0.032 },
+        { energy: 6.000, alpha: 0.105, beta: 0.028 },
+        { energy: 8.000, alpha: 0.082, beta: 0.020 },
+        { energy: 10.00, alpha: 0.065, beta: 0.016 }
+      ],
+      air: [
+        { energy: 0.015, alpha: 1.500, beta: 0.105 },
+        { energy: 0.020, alpha: 2.300, beta: 0.120 },
+        { energy: 0.030, alpha: 3.450, beta: 0.140 },
+        { energy: 0.040, alpha: 4.300, beta: 0.152 },
+        { energy: 0.050, alpha: 4.750, beta: 0.158 },
+        { energy: 0.060, alpha: 4.950, beta: 0.161 },
+        { energy: 0.080, alpha: 4.700, beta: 0.163 },
+        { energy: 0.100, alpha: 4.200, beta: 0.162 },
+        { energy: 0.150, alpha: 3.250, beta: 0.156 },
+        { energy: 0.200, alpha: 2.680, beta: 0.149 },
+        { energy: 0.300, alpha: 1.975, beta: 0.137 },
+        { energy: 0.400, alpha: 1.550, beta: 0.126 },
+        { energy: 0.500, alpha: 1.300, beta: 0.117 },
+        { energy: 0.600, alpha: 1.140, beta: 0.109 },
+        { energy: 0.662, alpha: 1.070, beta: 0.105 },
+        { energy: 0.800, alpha: 0.970, beta: 0.099 },
+        { energy: 1.000, alpha: 0.850, beta: 0.091 },
+        { energy: 1.173, alpha: 0.785, beta: 0.086 },
+        { energy: 1.332, alpha: 0.740, beta: 0.083 },
+        { energy: 1.500, alpha: 0.695, beta: 0.079 },
+        { energy: 2.000, alpha: 0.600, beta: 0.069 },
+        { energy: 3.000, alpha: 0.470, beta: 0.055 },
+        { energy: 4.000, alpha: 0.390, beta: 0.045 },
+        { energy: 5.000, alpha: 0.333, beta: 0.039 },
+        { energy: 6.000, alpha: 0.290, beta: 0.034 },
+        { energy: 8.000, alpha: 0.230, beta: 0.027 },
+        { energy: 10.00, alpha: 0.192, beta: 0.021 }
+      ],
+      concrete: [
+        { energy: 0.015, alpha: 1.350, beta: 0.100 },
+        { energy: 0.020, alpha: 2.050, beta: 0.115 },
+        { energy: 0.030, alpha: 3.100, beta: 0.133 },
+        { energy: 0.040, alpha: 3.850, beta: 0.143 },
+        { energy: 0.050, alpha: 4.250, beta: 0.148 },
+        { energy: 0.060, alpha: 4.400, beta: 0.151 },
+        { energy: 0.080, alpha: 4.200, beta: 0.153 },
+        { energy: 0.100, alpha: 3.750, beta: 0.152 },
+        { energy: 0.150, alpha: 2.900, beta: 0.147 },
+        { energy: 0.200, alpha: 2.380, beta: 0.141 },
+        { energy: 0.300, alpha: 1.750, beta: 0.131 },
+        { energy: 0.400, alpha: 1.370, beta: 0.121 },
+        { energy: 0.500, alpha: 1.150, beta: 0.112 },
+        { energy: 0.600, alpha: 1.010, beta: 0.105 },
+        { energy: 0.662, alpha: 0.945, beta: 0.101 },
+        { energy: 0.800, alpha: 0.855, beta: 0.095 },
+        { energy: 1.000, alpha: 0.750, beta: 0.088 },
+        { energy: 1.173, alpha: 0.690, beta: 0.083 },
+        { energy: 1.332, alpha: 0.652, beta: 0.080 },
+        { energy: 1.500, alpha: 0.615, beta: 0.076 },
+        { energy: 2.000, alpha: 0.530, beta: 0.066 },
+        { energy: 3.000, alpha: 0.415, beta: 0.053 },
+        { energy: 4.000, alpha: 0.343, beta: 0.044 },
+        { energy: 5.000, alpha: 0.293, beta: 0.038 },
+        { energy: 6.000, alpha: 0.255, beta: 0.033 },
+        { energy: 8.000, alpha: 0.202, beta: 0.026 },
+        { energy: 10.00, alpha: 0.169, beta: 0.021 }
+      ],
+      water: [
+        { energy: 0.015, alpha: 1.450, beta: 0.103 },
+        { energy: 0.020, alpha: 2.200, beta: 0.118 },
+        { energy: 0.030, alpha: 3.300, beta: 0.137 },
+        { energy: 0.040, alpha: 4.100, beta: 0.148 },
+        { energy: 0.050, alpha: 4.500, beta: 0.154 },
+        { energy: 0.060, alpha: 4.700, beta: 0.157 },
+        { energy: 0.080, alpha: 4.450, beta: 0.159 },
+        { energy: 0.100, alpha: 3.980, beta: 0.158 },
+        { energy: 0.150, alpha: 3.075, beta: 0.152 },
+        { energy: 0.200, alpha: 2.530, beta: 0.145 },
+        { energy: 0.300, alpha: 1.862, beta: 0.134 },
+        { energy: 0.400, alpha: 1.460, beta: 0.123 },
+        { energy: 0.500, alpha: 1.225, beta: 0.114 },
+        { energy: 0.600, alpha: 1.075, beta: 0.107 },
+        { energy: 0.662, alpha: 1.008, beta: 0.103 },
+        { energy: 0.800, alpha: 0.913, beta: 0.097 },
+        { energy: 1.000, alpha: 0.800, beta: 0.089 },
+        { energy: 1.173, alpha: 0.738, beta: 0.085 },
+        { energy: 1.332, alpha: 0.696, beta: 0.081 },
+        { energy: 1.500, alpha: 0.655, beta: 0.078 },
+        { energy: 2.000, alpha: 0.565, beta: 0.068 },
+        { energy: 3.000, alpha: 0.443, beta: 0.054 },
+        { energy: 4.000, alpha: 0.367, beta: 0.045 },
+        { energy: 5.000, alpha: 0.313, beta: 0.039 },
+        { energy: 6.000, alpha: 0.273, beta: 0.034 },
+        { energy: 8.000, alpha: 0.217, beta: 0.027 },
+        { energy: 10.00, alpha: 0.181, beta: 0.022 }
+      ]
+    };
+
+    // ============================================================
+    // CONSTANTES PHYSIQUES
+    // ============================================================
+    const DOSE_CONVERSION_FACTOR = 1.602e-13 * 3600 * 1e6;
+
+    // ============================================================
+    // FONCTIONS D'INTERPOLATION
+    // ============================================================
+    function interpolateAttenuation(material, energy) {
+      const data = material.attenuationData;
+
+      if (energy <= data[0].energy) {
+        return {
+          mu: data[0].mu * material.density,
+          muEn: data[0].muEn * material.density
+        };
+      }
+      if (energy >= data[data.length - 1].energy) {
+        const last = data[data.length - 1];
+        return {
+          mu: last.mu * material.density,
+          muEn: last.muEn * material.density
+        };
+      }
+
+      let i = 0;
+      while (i < data.length - 1 && data[i + 1].energy < energy) {
+        i++;
+      }
+
+      const e1 = data[i].energy;
+      const e2 = data[i + 1].energy;
+      const mu1 = data[i].mu;
+      const mu2 = data[i + 1].mu;
+      const muEn1 = data[i].muEn;
+      const muEn2 = data[i + 1].muEn;
+
+      const logE = Math.log(energy);
+      const logE1 = Math.log(e1);
+      const logE2 = Math.log(e2);
+      const logMu1 = Math.log(mu1);
+      const logMu2 = Math.log(mu2);
+      const logMuEn1 = Math.log(muEn1);
+      const logMuEn2 = Math.log(muEn2);
+
+      const t = (logE - logE1) / (logE2 - logE1);
+      const logMu = logMu1 + t * (logMu2 - logMu1);
+      const logMuEn = logMuEn1 + t * (logMuEn2 - logMuEn1);
+
+      return {
+        mu: Math.exp(logMu) * material.density,
+        muEn: Math.exp(logMuEn) * material.density
+      };
+    }
+
+    function interpolateBuildUpParams(data, energy) {
+      if (energy <= data[0].energy) {
+        return data[0];
+      }
+      if (energy >= data[data.length - 1].energy) {
+        return data[data.length - 1];
+      }
+
+      let i = 0;
+      while (i < data.length - 1 && data[i + 1].energy < energy) {
+        i++;
+      }
+
+      const e1 = data[i].energy;
+      const e2 = data[i + 1].energy;
+      const alpha1 = data[i].alpha;
+      const alpha2 = data[i + 1].alpha;
+      const beta1 = data[i].beta;
+      const beta2 = data[i + 1].beta;
+
+      const logE = Math.log(energy);
+      const logE1 = Math.log(e1);
+      const logE2 = Math.log(e2);
+      const t = (logE - logE1) / (logE2 - logE1);
+
+      return {
+        energy: energy,
+        alpha: alpha1 + t * (alpha2 - alpha1),
+        beta: beta1 + t * (beta2 - beta1)
+      };
+    }
+
+    function calculateBuildUpFactor(material, energy, mfp) {
+      const data = BUILDUP_DATA[material];
+      const params = interpolateBuildUpParams(data, energy);
+      return 1.0 + params.alpha * mfp * Math.exp(params.beta * mfp);
+    }
+
+    // ============================================================
+    // CALCULS DE DOSE
+    // ============================================================
+    function calculateSingleEnergyDose(energy, photonRate, distance, shieldMaterial, shieldThickness) {
+      const distanceCm = distance * 100;
+      const unshieldedFlux = photonRate / (4 * Math.PI * distanceCm * distanceCm);
+
+      const airData = MATERIALS.air;
+      const { muEn } = interpolateAttenuation(airData, energy);
+      const muEnMassic = muEn / airData.density;
+
+      const unshieldedDoseRate = unshieldedFlux * energy * muEnMassic * DOSE_CONVERSION_FACTOR;
+
+      const result = {
+        energy: energy,
+        intensity: photonRate,
+        doseRateUnshielded: unshieldedDoseRate
+      };
+
+      if (shieldMaterial && shieldThickness && shieldThickness > 0) {
+        const materialData = MATERIALS[shieldMaterial];
+        const { mu } = interpolateAttenuation(materialData, energy);
+        const mfp = mu * shieldThickness;
+        const buildUp = calculateBuildUpFactor(shieldMaterial, energy, mfp);
+        const attenuationFactor = buildUp * Math.exp(-mfp);
+        const shieldedDoseRate = unshieldedDoseRate * attenuationFactor;
+
+        result.buildUpFactor = buildUp;
+        result.attenuationFactor = attenuationFactor;
+        result.doseRateShielded = shieldedDoseRate;
+      }
+
+      return result;
+    }
+
+    function calculateDose(params) {
+      let energies = [];
+
+      if (params.source.type === 'energy') {
+        energies = params.source.energies.map(e => ({
+          energy: e.energy,
+          intensity: params.source.photonRate * e.intensity
+        }));
+      } else {
+        const radionuclide = RADIONUCLIDES[params.source.radionuclide];
+        energies = radionuclide.gammaLines.map(line => ({
+          energy: line.energy,
+          intensity: params.source.activity * line.intensity
+        }));
+      }
+
+      const energyResults = energies.map(e =>
+        calculateSingleEnergyDose(
+          e.energy,
+          e.intensity,
+          params.distance,
+          params.shield ? params.shield.material : null,
+          params.shield ? params.shield.thickness : null
+        )
+      );
+
+      const totalDoseRateUnshielded = energyResults.reduce(
+        (sum, r) => sum + r.doseRateUnshielded,
+        0
+      );
+
+      let totalDoseRateShielded = undefined;
+      let totalAttenuationFactor = undefined;
+
+      if (params.shield) {
+        totalDoseRateShielded = energyResults.reduce(
+          (sum, r) => sum + (r.doseRateShielded || 0),
+          0
+        );
+
+        if (totalDoseRateUnshielded > 0) {
+          totalAttenuationFactor = totalDoseRateShielded / totalDoseRateUnshielded;
+        }
+      }
+
+      return {
+        totalDoseRateUnshielded: totalDoseRateUnshielded,
+        totalDoseRateShielded: totalDoseRateShielded,
+        totalAttenuationFactor: totalAttenuationFactor,
+        energyResults: energyResults,
+        source: params.source,
+        distance: params.distance,
+        shield: params.shield
+      };
+    }
+
+    // ============================================================
+    // FONCTIONS DE FORMATAGE
+    // ============================================================
+    function formatNumber(value, precision = 3) {
+      if (value === 0) return '0';
+      const absValue = Math.abs(value);
+      if (absValue >= 1e4 || absValue < 1e-2) {
+        return value.toExponential(precision);
+      } else {
+        return value.toPrecision(precision);
+      }
+    }
+
+    function formatDoseRate(doseRate) {
+      if (doseRate >= 1e6) {
+        return formatNumber(doseRate / 1e6) + ' Sv/h';
+      } else if (doseRate >= 1e3) {
+        return formatNumber(doseRate / 1e3) + ' mSv/h';
+      } else {
+        return formatNumber(doseRate) + ' µSv/h';
+      }
+    }
+
+    // ============================================================
+    // INTERFACE UTILISATEUR
+    // ============================================================
+    class DoseCalculatorUI {
+      constructor() {
+        this.form = document.getElementById('doseForm');
+        this.resultsDiv = document.getElementById('results');
+        this.resultsContent = document.getElementById('resultsContent');
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        const sourceTypeRadios = document.querySelectorAll('input[name="sourceType"]');
+        sourceTypeRadios.forEach(radio => {
+          radio.addEventListener('change', (e) => {
+            this.toggleSourceType(e.target.value);
+          });
+        });
+
+        const energyTypeSelect = document.getElementById('energyType');
+        energyTypeSelect.addEventListener('change', (e) => {
+          this.toggleEnergyType(e.target.value);
+        });
+
+        const useShieldCheckbox = document.getElementById('useShield');
+        useShieldCheckbox.addEventListener('change', (e) => {
+          this.toggleShield(e.target.checked);
+        });
+
+        this.form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.calculate();
+        });
+      }
+
+      toggleSourceType(type) {
+        const energyInputs = document.getElementById('energyInputs');
+        const radionuclideInputs = document.getElementById('radionuclideInputs');
+
+        if (type === 'energy') {
+          energyInputs.classList.add('active');
+          radionuclideInputs.classList.remove('active');
+        } else {
+          energyInputs.classList.remove('active');
+          radionuclideInputs.classList.add('active');
+        }
+      }
+
+      toggleEnergyType(type) {
+        const monoEnergy = document.getElementById('monoEnergy');
+        const multiEnergy = document.getElementById('multiEnergy');
+
+        if (type === 'mono') {
+          monoEnergy.classList.add('active');
+          multiEnergy.classList.remove('active');
+        } else {
+          monoEnergy.classList.remove('active');
+          multiEnergy.classList.add('active');
+        }
+      }
+
+      toggleShield(enabled) {
+        const shieldInputs = document.getElementById('shieldInputs');
+        if (enabled) {
+          shieldInputs.classList.add('active');
+        } else {
+          shieldInputs.classList.remove('active');
+        }
+      }
+
+      getFormData() {
+        const formData = new FormData(this.form);
+        const sourceType = formData.get('sourceType');
+
+        let source;
+
+        if (sourceType === 'energy') {
+          const energyType = document.getElementById('energyType').value;
+          const photonRate = parseFloat(document.getElementById('photonRate').value);
+
+          let energies;
+
+          if (energyType === 'mono') {
+            const energy = parseFloat(document.getElementById('singleEnergy').value);
+            energies = [{ energy: energy, intensity: 1.0 }];
+          } else {
+            const energyListText = document.getElementById('energyList').value;
+            energies = energyListText
+              .split('\n')
+              .map(line => line.trim())
+              .filter(line => line.length > 0)
+              .map(line => {
+                const parts = line.split(',').map(s => s.trim());
+                return {
+                  energy: parseFloat(parts[0]),
+                  intensity: parseFloat(parts[1] || '1.0')
+                };
+              });
+          }
+
+          source = {
+            type: 'energy',
+            energies: energies,
+            photonRate: photonRate
+          };
+        } else {
+          const radionuclide = document.getElementById('radionuclide').value;
+          const activity = parseFloat(document.getElementById('activity').value);
+
+          source = {
+            type: 'radionuclide',
+            radionuclide: radionuclide,
+            activity: activity
+          };
+        }
+
+        const distance = parseFloat(document.getElementById('distance').value);
+
+        let shield = undefined;
+        const useShield = document.getElementById('useShield').checked;
+
+        if (useShield) {
+          const material = document.getElementById('shieldMaterial').value;
+          const thickness = parseFloat(document.getElementById('shieldThickness').value);
+
+          shield = {
+            material: material,
+            thickness: thickness
+          };
+        }
+
+        return {
+          source: source,
+          distance: distance,
+          shield: shield
+        };
+      }
+
+      calculate() {
+        try {
+          const params = this.getFormData();
+          const results = calculateDose(params);
+          this.displayResults(results);
+        } catch (error) {
+          alert('Erreur de calcul: ' + error.message);
+          console.error(error);
+        }
+      }
+
+      displayResults(results) {
+        let html = '';
+
+        html += `
+          <div class="result-item">
+            <div class="result-label">📍 Distance</div>
+            <div class="result-value">${formatNumber(results.distance)} <span class="unit">m</span></div>
+          </div>
+        `;
+
+        html += `
+          <div class="result-item">
+            <div class="result-label">☢️ Débit de dose sans écran</div>
+            <div class="result-value">${formatDoseRate(results.totalDoseRateUnshielded)}</div>
+          </div>
+        `;
+
+        if (results.totalDoseRateShielded !== undefined) {
+          const material = MATERIALS[results.shield.material];
+          html += `
+            <div class="result-item">
+              <div class="result-label">🛡️ Écran: ${material.name} (${formatNumber(results.shield.thickness)} cm)</div>
+              <div class="result-value">${formatDoseRate(results.totalDoseRateShielded)}</div>
+            </div>
+          `;
+
+          html += `
+            <div class="result-item">
+              <div class="result-label">📉 Facteur d'atténuation total</div>
+              <div class="result-value">${formatNumber(results.totalAttenuationFactor * 100)} <span class="unit">%</span></div>
+            </div>
+          `;
+
+          const reductionFactor = 1 / results.totalAttenuationFactor;
+          html += `
+            <div class="result-item">
+              <div class="result-label">🔻 Facteur de réduction</div>
+              <div class="result-value">÷ ${formatNumber(reductionFactor)}</div>
+            </div>
+          `;
+        }
+
+        if (results.energyResults.length > 1) {
+          html += `
+            <div class="result-item">
+              <div class="result-label">📊 Détails par énergie</div>
+              <div style="margin-top: 15px;">
+          `;
+
+          results.energyResults.forEach((er) => {
+            const percentage = (er.doseRateUnshielded / results.totalDoseRateUnshielded) * 100;
+            html += `
+              <div style="background: rgba(255,255,255,0.15); padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                <div style="font-weight: 600;">${formatNumber(er.energy)} MeV</div>
+                <div style="font-size: 0.9em;">
+                  Sans écran: ${formatDoseRate(er.doseRateUnshielded)} (${formatNumber(percentage)}%)
+                </div>
+            `;
+
+            if (er.doseRateShielded !== undefined) {
+              html += `
+                <div style="font-size: 0.9em;">
+                  Avec écran: ${formatDoseRate(er.doseRateShielded)}
+                </div>
+                <div style="font-size: 0.9em;">
+                  Build-up: ${formatNumber(er.buildUpFactor)}
+                </div>
+              `;
+            }
+
+            html += `</div>`;
+          });
+
+          html += `</div></div>`;
+        }
+
+        this.resultsContent.innerHTML = html;
+        this.resultsDiv.classList.add('show');
+        this.resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    // Initialiser l'application
+    document.addEventListener('DOMContentLoaded', () => {
+      new DoseCalculatorUI();
+    });
+  </script>
+</body>
+</html>

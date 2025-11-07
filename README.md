@@ -25,7 +25,21 @@ Application web en TypeScript pour calculer les débits de dose des rayonnements
 - **Calculs en double précision** : Gestion des nombres très grands et très petits
 - **Interpolation logarithmique** : Précision maximale pour les coefficients d'atténuation
 
-## Installation
+## 🚀 Utilisation rapide (sans installation)
+
+**La façon la plus simple** : Ouvrez directement le fichier `app.html` dans votre navigateur !
+
+1. Double-cliquez sur le fichier `app.html`
+2. L'application s'ouvre dans votre navigateur par défaut
+3. Commencez à calculer !
+
+✅ **Aucune installation requise** - Tout le code JavaScript est inclus dans le fichier HTML.
+
+---
+
+## 💻 Installation avec npm (développeurs)
+
+Si vous souhaitez modifier le code TypeScript :
 
 ```bash
 # Installer les dépendances
@@ -37,6 +51,8 @@ npm run dev
 # Compiler pour la production
 npm run build
 ```
+
+---
 
 ## Utilisation
 
@@ -87,15 +103,16 @@ où :
 
 ```
 dosecalc/
-├── src/
-│   ├── types.ts              # Définitions TypeScript
-│   ├── calculator.ts         # Moteur de calcul
+├── app.html                 # ⭐ VERSION STANDALONE (ouvrir dans navigateur)
+├── src/                     # Code source TypeScript
+│   ├── types.ts             # Définitions TypeScript
+│   ├── calculator.ts        # Moteur de calcul
 │   ├── main.ts              # Interface utilisateur
 │   └── data/
 │       ├── radionuclides.ts # Base de radionucléides
 │       ├── xcom.ts          # Coefficients XCOM
 │       └── buildup.ts       # Facteurs de build-up
-├── index.html               # Interface web
+├── index.html               # Interface web (nécessite npm)
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
