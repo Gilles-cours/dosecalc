@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur de Dose Gamma</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 40px;
+      font-size: 1.1em;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .form-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 10px;
+      border: 2px solid #e9ecef;
+    }
+
+    .form-section h2 {
+      color: #495057;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #495057;
+      font-weight: 600;
+      font-size: 0.95em;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    input[type="radio"],
+    input[type="checkbox"] {
+      margin-right: 8px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .conditional {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .conditional.active {
+      display: block;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-weight: 600;
+      display: block;
+      margin: 30px auto;
+      min-width: 200px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .results {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      display: none;
+      margin-top: 30px;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .results h2 {
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    .result-item {
+      background: rgba(255,255,255,0.2);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .result-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .result-value {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+
+    .unit {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      color: #0d47a1;
+    }
+
+    .warning-box {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      color: #e65100;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>☢️ Calculateur de Dose Gamma</h1>
+    <p class="subtitle">Calcul précis de dose avec atténuation et facteur de build-up</p>
+
+    <div class="info-box">
+      <strong>Note :</strong> Ce calculateur utilise les coefficients d'atténuation de la base XCOM et prend en compte le facteur de build-up pour une estimation précise de la dose.
+    </div>
+
+    <form id="doseForm">
+      <!-- Source Type -->
+      <div class="form-section">
+        <h2>1. Type de Source</h2>
+        <div class="form-group">
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="sourceType" value="energy" checked>
+              Énergie directe
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="sourceType" value="radionuclide">
+              Radionucléide
+            </label>
+          </div>
+        </div>
+
+        <div id="energyInputs" class="conditional active">
+          <div class="form-group">
+            <label>Type d'énergie</label>
+            <select id="energyType">
+              <option value="mono">Mono-énergétique</option>
+              <option value="multi">Liste d'énergies</option>
+            </select>
+          </div>
+          <div id="monoEnergy" class="conditional active">
+            <div class="form-group">
+              <label>Énergie (MeV)</label>
+              <input type="number" id="singleEnergy" step="0.001" value="1.0" min="0.01" max="10">
+            </div>
+          </div>
+          <div id="multiEnergy" class="conditional">
+            <div class="form-group">
+              <label>Liste d'énergies (MeV) et intensités relatives (une par ligne: énergie,intensité)</label>
+              <textarea id="energyList" placeholder="0.662,1.0&#10;1.173,0.5&#10;1.332,0.5">0.662,1.0</textarea>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nombre de photons par seconde (photons/s)</label>
+            <input type="number" id="photonRate" value="1e10" step="1e9" min="0">
+          </div>
+        </div>
+
+        <div id="radionuclideInputs" class="conditional">
+          <div class="form-group">
+            <label>Radionucléide</label>
+            <select id="radionuclide">
+              <option value="Cs-137">Césium-137</option>
+              <option value="Co-60">Cobalt-60</option>
+              <option value="Am-241">Américium-241</option>
+              <option value="Ag-110m">Argent-110m</option>
+              <option value="Ir-192">Iridium-192</option>
+              <option value="I-131">Iode-131</option>
+              <option value="Ba-133">Baryum-133</option>
+              <option value="Na-22">Sodium-22</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Activité (Bq)</label>
+            <input type="number" id="activity" value="1e9" step="1e8" min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Distance -->
+      <div class="form-section">
+        <h2>2. Distance</h2>
+        <div class="form-group">
+          <label>Distance source-détecteur (m)</label>
+          <input type="number" id="distance" value="1.0" step="0.1" min="0.01">
+        </div>
+      </div>
+
+      <!-- Shielding -->
+      <div class="form-section">
+        <h2>3. Écran (optionnel)</h2>
+        <div class="form-group">
+          <label class="radio-label">
+            <input type="checkbox" id="useShield">
+            Utiliser un écran
+          </label>
+        </div>
+
+        <div id="shieldInputs" class="conditional">
+          <div class="form-group">
+            <label>Matériau</label>
+            <select id="shieldMaterial">
+              <option value="lead">Plomb</option>
+              <option value="steel">Acier</option>
+              <option value="aluminum">Aluminium</option>
+              <option value="uranium">Uranium</option>
+              <option value="air">Air</option>
+              <option value="concrete">Béton</option>
+              <option value="water">Eau</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Épaisseur (cm)</label>
+            <input type="number" id="shieldThickness" value="5.0" step="0.1" min="0">
+          </div>
+        </div>
+      </div>
+
+      <button type="submit">🧮 Calculer la Dose</button>
+    </form>
+
+    <div id="results" class="results">
+      <h2>📊 Résultats</h2>
+      <div id="resultsContent"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
