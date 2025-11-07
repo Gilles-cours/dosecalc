@@ -345,6 +345,44 @@ export function interpolateAttenuation(
 }
 
 /**
+ * Données pour le tissu ICRU (utilisé pour calcul de dose)
+ */
+export const ICRU_TISSUE: MaterialData = {
+  name: 'Tissu ICRU',
+  density: 1.00,
+  attenuationData: [
+    { energy: 0.010, mu: 5.335, muEn: 5.214 },
+    { energy: 0.015, mu: 1.673, muEn: 1.614 },
+    { energy: 0.020, mu: 0.8089, muEn: 0.7664 },
+    { energy: 0.030, mu: 0.2947, muEn: 0.2720 },
+    { energy: 0.040, mu: 0.1519, muEn: 0.1366 },
+    { energy: 0.050, mu: 0.09507, muEn: 0.08353 },
+    { energy: 0.060, mu: 0.06829, muEn: 0.05901 },
+    { energy: 0.080, mu: 0.04428, muEn: 0.03751 },
+    { energy: 0.100, mu: 0.03303, muEn: 0.02753 },
+    { energy: 0.150, mu: 0.02136, muEn: 0.01742 },
+    { energy: 0.200, mu: 0.01741, muEn: 0.01398 },
+    { energy: 0.300, mu: 0.01377, muEn: 0.01080 },
+    { energy: 0.400, mu: 0.01199, muEn: 0.009283 },
+    { energy: 0.500, mu: 0.01087, muEn: 0.008364 },
+    { energy: 0.600, mu: 0.01009, muEn: 0.007739 },
+    { energy: 0.662, mu: 0.009731, muEn: 0.007451 },
+    { energy: 0.800, mu: 0.009098, muEn: 0.006959 },
+    { energy: 1.000, mu: 0.008474, muEn: 0.006469 },
+    { energy: 1.173, mu: 0.008066, muEn: 0.006157 },
+    { energy: 1.332, mu: 0.007778, muEn: 0.005935 },
+    { energy: 1.500, mu: 0.007515, muEn: 0.005731 },
+    { energy: 2.000, mu: 0.006973, muEn: 0.005315 },
+    { energy: 3.000, mu: 0.006245, muEn: 0.004756 },
+    { energy: 4.000, mu: 0.005824, muEn: 0.004431 },
+    { energy: 5.000, mu: 0.005556, muEn: 0.004224 },
+    { energy: 6.000, mu: 0.005377, muEn: 0.004079 },
+    { energy: 8.000, mu: 0.005166, muEn: 0.003889 },
+    { energy: 10.00, mu: 0.005051, muEn: 0.003776 }
+  ]
+};
+
+/**
  * Obtient le coefficient d'atténuation linéaire pour un matériau à une énergie donnée
  */
 export function getAttenuationCoefficient(material: ShieldMaterial, energy: number): number {

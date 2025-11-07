@@ -22,22 +22,20 @@ import {
   RadionuclideSource
 } from './types';
 import { getRadionuclide } from './data/radionuclides';
-import { getAttenuationCoefficient, interpolateAttenuation, MATERIALS } from './data/xcom';
+import { getAttenuationCoefficient, interpolateAttenuation, MATERIALS, ICRU_TISSUE } from './data/xcom';
 import { calculateBuildUpFactor } from './data/buildup';
 
 /**
  * Constantes physiques
  */
-const ELECTRON_MASS_MEV = 0.511; // MeV
 
 /**
- * Facteur de conversion:
- * - De (photons/cm²/s) * MeV * (cm²/g) vers µSv/h
- * - 1 Gy = 1 J/kg = 6.24150934e12 MeV/kg
- * - 1 Sv = 1 Gy (pour gamma)
- * - µSv/h = 1e6 * Sv * 3600 s/h
+ * Facteur de conversion pour obtenir mSv/h :
+ * - 1.602e-13 : conversion J/MeV
+ * - 3600 : conversion s vers h
+ * - 1e3 : conversion Sv vers mSv
  */
-const DOSE_CONVERSION_FACTOR = 1.602e-13 * 3600 * 1e6; // (J/MeV) * (s/h) * (µSv/Sv)
+const DOSE_CONVERSION_FACTOR = 1.602e-13 * 3600 * 1e3; // (J/MeV) * (s/h) * (mSv/Sv)
 
 /**
  * Convertit une source radionucléide en source d'énergie
@@ -70,22 +68,22 @@ function calculateSingleEnergyDose(
   const distanceCm = distance * 100;
 
   // Flux de photons non atténué à la distance r (photons/cm²/s)
-  // Φ = S / (4πr²)
+  // Φ = S / (4πr²) = Émissivité / (4πd²)
   const unshieldedFlux = photonRate / (4 * Math.PI * distanceCm * distanceCm);
 
-  // Coefficient d'absorption d'énergie massique pour l'air (pour la dose)
-  // On utilise l'air comme milieu de référence pour la dose
-  const airData = MATERIALS.air;
-  const { muEn } = interpolateAttenuation(airData, energy);
-  const muEnMassic = muEn / airData.density; // cm²/g
+  // Coefficient d'absorption d'énergie massique pour le tissu ICRU
+  const { muEn } = interpolateAttenuation(ICRU_TISSUE, energy);
+  const muEnMassicTissue = muEn / ICRU_TISSUE.density; // cm²/g
 
-  // Débit de dose non atténué (µSv/h)
-  // Ḋ = Φ * E * (μ_en/ρ) * facteur_conversion
-  const unshieldedDoseRate = unshieldedFlux * energy * muEnMassic * DOSE_CONVERSION_FACTOR;
+  // Débit de dose non atténué (mSv/h)
+  // Ḋ = Φ * E * (μ_en/ρ)tissu * facteur_conversion
+  const unshieldedDoseRate = unshieldedFlux * energy * muEnMassicTissue * DOSE_CONVERSION_FACTOR;
 
   const result: SingleEnergyResult = {
     energy,
     intensity: photonRate,
+    flux: unshieldedFlux,
+    muEnMassicTissue,
     doseRateUnshielded: unshieldedDoseRate
   };
 
@@ -93,6 +91,10 @@ function calculateSingleEnergyDose(
   if (shieldMaterial && shieldThickness && shieldThickness > 0) {
     // Coefficient d'atténuation linéaire du matériau
     const mu = getAttenuationCoefficient(shieldMaterial as any, energy);
+
+    // Coefficient d'atténuation massique
+    const materialData = MATERIALS[shieldMaterial as any];
+    const muMassic = mu / materialData.density;
 
     // Nombre de libre parcours moyens
     const mfp = mu * shieldThickness;
@@ -104,12 +106,11 @@ function calculateSingleEnergyDose(
     // T = B * exp(-μx)
     const attenuationFactor = buildUp * Math.exp(-mfp);
 
-    // Flux atténué
-    const shieldedFlux = unshieldedFlux * attenuationFactor;
-
     // Débit de dose atténué
     const shieldedDoseRate = unshieldedDoseRate * attenuationFactor;
 
+    result.mu = mu;
+    result.muMassic = muMassic;
     result.buildUpFactor = buildUp;
     result.attenuationFactor = attenuationFactor;
     result.doseRateShielded = shieldedDoseRate;
@@ -198,11 +199,11 @@ export function formatNumber(value: number, precision: number = 3): string {
  * Formate un résultat de dose avec son unité
  */
 export function formatDoseRate(doseRate: number): string {
-  if (doseRate >= 1e6) {
-    return `${formatNumber(doseRate / 1e6)} Sv/h`;
-  } else if (doseRate >= 1e3) {
-    return `${formatNumber(doseRate / 1e3)} mSv/h`;
+  if (doseRate >= 1e3) {
+    return `${formatNumber(doseRate / 1e3)} Sv/h`;
+  } else if (doseRate >= 1.0) {
+    return `${formatNumber(doseRate)} mSv/h`;
   } else {
-    return `${formatNumber(doseRate)} µSv/h`;
+    return `${formatNumber(doseRate * 1000)} µSv/h`;
   }
 }

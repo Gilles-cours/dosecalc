@@ -69,9 +69,13 @@ export interface CalculationParams {
  */
 export interface SingleEnergyResult {
   energy: number;             // MeV
-  intensity: number;          // Relative intensity
-  doseRateUnshielded: number; // µSv/h
-  doseRateShielded?: number;  // µSv/h (si écran)
+  intensity: number;          // Photons/s
+  flux: number;               // photons/cm²/s
+  muEnMassicTissue: number;   // (µen/ρ)tissu en cm²/g
+  doseRateUnshielded: number; // mSv/h
+  mu?: number;                // Coefficient d'atténuation linéaire écran (cm⁻¹)
+  muMassic?: number;          // Coefficient d'atténuation massique écran (cm²/g)
+  doseRateShielded?: number;  // mSv/h (si écran)
   attenuationFactor?: number; // Facteur d'atténuation
   buildUpFactor?: number;     // Facteur de build-up
 }
@@ -80,8 +84,8 @@ export interface SingleEnergyResult {
  * Résultats du calcul de dose
  */
 export interface DoseResults {
-  totalDoseRateUnshielded: number;  // µSv/h (double precision)
-  totalDoseRateShielded?: number;   // µSv/h (double precision)
+  totalDoseRateUnshielded: number;  // mSv/h (double precision)
+  totalDoseRateShielded?: number;   // mSv/h (double precision)
   totalAttenuationFactor?: number;  // Facteur d'atténuation total
   energyResults: SingleEnergyResult[]; // Détails par énergie
   source: Source;
