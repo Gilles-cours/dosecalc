@@ -345,45 +345,46 @@ export function interpolateAttenuation(
 }
 
 /**
- * Données pour le tissu mou ICRU-44 (utilisé pour calcul de dose)
- * Source: NIST XCOM Database
- * Composition: H(10.1%), C(11.1%), N(2.6%), O(76.2%)
- * Densité: 1.00 g/cm³
+ * Données pour le tissu mammaire ICRU-44 (utilisé pour calcul de dose)
+ * Source: NIST XCOM Database - Breast Tissue (ICRU-44)
+ * URL: https://physics.nist.gov/PhysRefData/XrayMassCoef/ComTab/breast.html
+ * Densité: 1.020 g/cm³
  *
- * Coefficients µ/ρ et µen/ρ en cm²/g
+ * Coefficients µ/ρ et µen/ρ en cm²/g (données massiques NIST)
+ * Valeurs interpolées pour 0.662, 1.173, 1.332 MeV
  */
 export const ICRU_TISSUE: MaterialData = {
-  name: 'Tissu ICRU-44',
-  density: 1.00,
+  name: 'Tissu mammaire ICRU-44',
+  density: 1.020,
   attenuationData: [
-    { energy: 0.010, mu: 5.329, muEn: 5.211 },
-    { energy: 0.015, mu: 1.673, muEn: 1.614 },
-    { energy: 0.020, mu: 0.8096, muEn: 0.7672 },
-    { energy: 0.030, mu: 0.2956, muEn: 0.2729 },
-    { energy: 0.040, mu: 0.1525, muEn: 0.1372 },
-    { energy: 0.050, mu: 0.09552, muEn: 0.08398 },
-    { energy: 0.060, mu: 0.06865, muEn: 0.05937 },
-    { energy: 0.080, mu: 0.04453, muEn: 0.03779 },
-    { energy: 0.100, mu: 0.03321, muEn: 0.02778 },
-    { energy: 0.150, mu: 0.02148, muEn: 0.01755 },
-    { energy: 0.200, mu: 0.01752, muEn: 0.01409 },
-    { energy: 0.300, mu: 0.01386, muEn: 0.01088 },
-    { energy: 0.400, mu: 0.01206, muEn: 0.009344 },
-    { energy: 0.500, mu: 0.01093, muEn: 0.008418 },
-    { energy: 0.600, mu: 0.01015, muEn: 0.007791 },
-    { energy: 0.662, mu: 0.009788, muEn: 0.007501 },
-    { energy: 0.800, mu: 0.009150, muEn: 0.007002 },
-    { energy: 1.000, mu: 0.008522, muEn: 0.006507 },
-    { energy: 1.173, mu: 0.008112, muEn: 0.006192 },
-    { energy: 1.332, mu: 0.007823, muEn: 0.005969 },
-    { energy: 1.500, mu: 0.007558, muEn: 0.005764 },
-    { energy: 2.000, mu: 0.007013, muEn: 0.005345 },
-    { energy: 3.000, mu: 0.006281, muEn: 0.004783 },
-    { energy: 4.000, mu: 0.005858, muEn: 0.004456 },
-    { energy: 5.000, mu: 0.005588, muEn: 0.004247 },
-    { energy: 6.000, mu: 0.005408, muEn: 0.004101 },
-    { energy: 8.000, mu: 0.005196, muEn: 0.003909 },
-    { energy: 10.00, mu: 0.005080, muEn: 0.003795 }
+    { energy: 0.010, mu: 4.295, muEn: 3.937 },
+    { energy: 0.015, mu: 1.378, muEn: 1.094 },
+    { energy: 0.020, mu: 0.6889, muEn: 0.4394 },
+    { energy: 0.030, mu: 0.3403, muEn: 0.1260 },
+    { energy: 0.040, mu: 0.2530, muEn: 0.05792 },
+    { energy: 0.050, mu: 0.2186, muEn: 0.03666 },
+    { energy: 0.060, mu: 0.2006, muEn: 0.02881 },
+    { energy: 0.080, mu: 0.1808, muEn: 0.02470 },
+    { energy: 0.100, mu: 0.1688, muEn: 0.02478 },
+    { energy: 0.150, mu: 0.1493, muEn: 0.02734 },
+    { energy: 0.200, mu: 0.1361, muEn: 0.02945 },
+    { energy: 0.300, mu: 0.1179, muEn: 0.03173 },
+    { energy: 0.400, mu: 0.1055, muEn: 0.03260 },
+    { energy: 0.500, mu: 0.09631, muEn: 0.03281 },
+    { energy: 0.600, mu: 0.08904, muEn: 0.03266 },
+    { energy: 0.662, mu: 0.08508, muEn: 0.03242 },  // Interpolé Cs-137
+    { energy: 0.800, mu: 0.07820, muEn: 0.03188 },
+    { energy: 1.000, mu: 0.07031, muEn: 0.03086 },
+    { energy: 1.173, mu: 0.06498, muEn: 0.02993 },  // Interpolé Co-60
+    { energy: 1.332, mu: 0.06158, muEn: 0.02926 },  // Interpolé Co-60
+    { energy: 1.500, mu: 0.05721, muEn: 0.02818 },
+    { energy: 2.000, mu: 0.04910, muEn: 0.02592 },
+    { energy: 3.000, mu: 0.03937, muEn: 0.02264 },
+    { energy: 4.000, mu: 0.03369, muEn: 0.02045 },
+    { energy: 5.000, mu: 0.02995, muEn: 0.01891 },
+    { energy: 6.000, mu: 0.02731, muEn: 0.01779 },
+    { energy: 8.000, mu: 0.02384, muEn: 0.01626 },
+    { energy: 10.00, mu: 0.02169, muEn: 0.01529 }
   ]
 };
 
